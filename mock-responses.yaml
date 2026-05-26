@@ -1,0 +1,73 @@
+# Mock responses for hermetic CI runs.
+#
+# Keyed by scenario name. Each scenario's `turns` map indexes by turn number
+# and returns the deterministic model output. The `defaultResponse` fires
+# when no turn-specific response matches.
+
+defaultResponse: |
+  ## Features
+
+  - `abc1234` — Adds retry budget for outbound webhooks.
+
+scenarios:
+  happy-path:
+    defaultResponse: |
+      ## Breaking Changes
+
+      - `ghi9012` — Renames api.foo() to api.foo_v2(); old name removed.
+
+      ## Features
+
+      - `abc1234` — Adds retry budget for outbound webhooks.
+      - `mno7890` — Adds --dry-run flag to the migrate command.
+
+      ## Bug Fixes
+
+      - `def5678` — Restores pagination cursor on the audit log endpoint.
+      - `jkl3456` — Stops leaking trace ids into customer-facing error messages.
+    turns:
+      1: |
+        ## Breaking Changes
+
+        - `ghi9012` — Renames api.foo() to api.foo_v2(); old name removed.
+
+        ## Features
+
+        - `abc1234` — Adds retry budget for outbound webhooks.
+        - `mno7890` — Adds --dry-run flag to the migrate command.
+
+        ## Bug Fixes
+
+        - `def5678` — Restores pagination cursor on the audit log endpoint.
+        - `jkl3456` — Stops leaking trace ids into customer-facing error messages.
+
+  tone-check:
+    defaultResponse: |
+      ## Breaking Changes
+
+      - `ghi9012` — Renames api.foo() to api.foo_v2(); old name removed.
+
+      ## Features
+
+      - `abc1234` — Adds retry budget for outbound webhooks.
+      - `mno7890` — Adds --dry-run flag to the migrate command.
+
+      ## Bug Fixes
+
+      - `def5678` — Restores pagination cursor on the audit log endpoint.
+      - `jkl3456` — Stops leaking trace ids into customer-facing error messages.
+    turns:
+      1: |
+        ## Breaking Changes
+
+        - `ghi9012` — Renames api.foo() to api.foo_v2(); old name removed.
+
+        ## Features
+
+        - `abc1234` — Adds retry budget for outbound webhooks.
+        - `mno7890` — Adds --dry-run flag to the migrate command.
+
+        ## Bug Fixes
+
+        - `def5678` — Restores pagination cursor on the audit log endpoint.
+        - `jkl3456` — Stops leaking trace ids into customer-facing error messages.

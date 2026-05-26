@@ -1,0 +1,77 @@
+# Release-notes agent — declarative behaviour spec.
+#
+# The agent reads a list of raw commits and produces a structured markdown
+# changelog, in three workflow stages:
+#
+#   extract:    raw commit              → { id, summary, suspected_category }
+#   categorize: structured change       → { id, summary, category }
+#   compose:    categorized list        → markdown release notes
+#
+# All three steps run against the same provider in one pipeline turn. The
+# workspace is exhaustively testable — see scenarios/*.scenario.yaml.
+#
+apiVersion: promptkit.altairalabs.ai/v1alpha1
+kind: Arena
+metadata:
+  name: release-notes-arena
+spec:
+  prompt_configs:
+    - id: extract
+      file: prompts/extract.yaml
+    - id: categorize
+      file: prompts/categorize.yaml
+    - id: compose
+      file: prompts/compose.yaml
+
+  providers:
+    - file: providers/claude-haiku.provider.yaml
+    - file: providers/openai-mini.provider.yaml
+    - file: providers/mock.provider.yaml
+      group: judge
+
+  judges:
+    - name: tone-judge
+      provider: mock           # swap to a real provider id for production drift checks
+      model: judge-model
+
+  judge_defaults:
+    judge: tone-judge
+
+  scenarios:
+    - file: scenarios/happy-path.scenario.yaml
+    - file: scenarios/tone-check.scenario.yaml
+
+  workflow:
+    version: 1
+    entry: extract
+    states:
+      extract:
+        prompt_task: extract
+        description: "Parse raw commits into structured change records."
+        on_event:
+          Extracted: categorize
+      categorize:
+        prompt_task: categorize
+        control: agent
+        description: "Confirm or correct the suspected category for each change."
+        on_event:
+          Categorized: compose
+      compose:
+        prompt_task: compose
+        description: "Compose markdown release notes from categorized changes."
+        terminal: true
+
+  defaults:
+    temperature: 0.3
+    max_tokens: 1500
+    seed: 42
+    concurrency: 2
+    output:
+      dir: out
+      formats: ["json", "html", "junit"]
+      html:
+        file: report.html
+      junit:
+        file: report.junit.xml
+    fail_on:
+      - provider_error

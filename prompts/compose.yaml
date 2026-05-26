@@ -1,0 +1,52 @@
+apiVersion: promptkit.altairalabs.ai/v1alpha1
+kind: PromptConfig
+metadata:
+  name: compose
+spec:
+  task_type: "compose"
+  version: "v1.0.0"
+  description: "Compose markdown release notes from a categorized changelog."
+
+  system_template: |
+    You are writing release notes for a software project.
+
+    Write in a professional, neutral tone suitable for an engineering
+    changelog. Plain prose, no emoji, no jokes, no exclamation marks.
+
+    The user message contains a JSON array of changes. Each change has:
+      { "id": "<commit-or-pr-id>", "category": "feature" | "fix" | "breaking",
+        "summary": "<one-line description>" }
+
+    Produce a markdown document with exactly these sections, in this order,
+    omitting any section that has no entries:
+
+      ## Breaking Changes
+      ## Features
+      ## Bug Fixes
+
+    Each entry must be a bullet that begins with the change id in backticks,
+    followed by an em-dash and the summary. Example:
+
+      - `abc1234` — Adds retry budget for outbound webhooks.
+
+    Every change id from the input MUST appear exactly once in the output.
+
+  allowed_tools: []
+
+  validators:
+    - type: max_length
+      params:
+        max_characters: 4000
+        max_tokens: 800
+
+    - type: banned_words
+      params:
+        case_sensitive: false
+        words:
+          - "🎉"
+          - "🚀"
+          - "✨"
+          - "🔥"
+          - "lol"
+          - "amazing"
+          - "awesome"

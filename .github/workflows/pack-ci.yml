@@ -1,0 +1,81 @@
+name: pack-ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      providers:
+        description: "Comma-separated providers to run against (e.g., claude-haiku,openai-mini)"
+        required: false
+        default: "mock"
+
+permissions:
+  contents: write    # required for release-on-main step
+
+jobs:
+  test:
+    name: PromptArena (mock — hermetic)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run scenarios against mock provider
+        uses: AltairaLabs/PromptKit/.github/actions/promptarena-action@v1
+        with:
+          config-file: config.arena.yaml
+          providers: mock
+          output-dir: out
+
+      - name: Upload arena report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arena-report
+          path: out/
+
+  test-real-providers:
+    name: PromptArena (real providers — drift check)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run scenarios against real providers
+        uses: AltairaLabs/PromptKit/.github/actions/promptarena-action@v1
+        with:
+          config-file: config.arena.yaml
+          providers: ${{ github.event.inputs.providers || 'claude-haiku,openai-mini' }}
+          output-dir: out
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+      - name: Upload arena report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arena-report-real
+          path: out/
+
+  release:
+    name: Compile and release pack artifact
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compile pack
+        uses: AltairaLabs/PromptKit/.github/actions/packc-action@v1
+        with:
+          config-file: config.arena.yaml
+          output: dist/release-notes.pack.json
+
+      - name: Upload pack artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-notes-pack
+          path: dist/release-notes.pack.json

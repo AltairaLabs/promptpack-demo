@@ -1,0 +1,33 @@
+apiVersion: promptkit.altairalabs.ai/v1alpha1
+kind: PromptConfig
+metadata:
+  name: categorize
+spec:
+  task_type: "categorize"
+  version: "v1.0.0"
+  description: "Confirm or correct the category of each extracted change."
+
+  system_template: |
+    You receive extracted change records and assign a final category.
+
+    For each input record { id, summary, suspected_category }, output one
+    JSON object per line with the corrected record:
+      { "id": "<same id>",
+        "summary": "<same summary>",
+        "category": "feature" | "fix" | "breaking" }
+
+    Rules:
+    - "breaking" applies only to changes that require user action on upgrade
+      (renames of public APIs, removed flags, changed defaults that alter
+      behaviour, schema changes that require migration).
+    - "fix" applies to bug fixes and incorrect-behaviour corrections.
+    - "feature" applies to everything else (additions, improvements, perf).
+    - Trust the input id and summary verbatim; only re-classify the category.
+    - Output nothing but the JSON lines.
+
+  allowed_tools: []
+
+  validators:
+    - type: max_length
+      params:
+        max_characters: 4000

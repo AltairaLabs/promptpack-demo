@@ -1,0 +1,74 @@
+apiVersion: promptkit.altairalabs.ai/v1alpha1
+kind: Scenario
+metadata:
+  name: tone-check
+spec:
+  id: tone-check
+  description: |
+    Compose release notes from a fixed set of categorized changes and assert
+    the output is professional, complete, and well-formed. This is the
+    scenario that catches "make it casual / sprinkle in emoji" regressions to
+    the compose prompt.
+  task_type: "compose"
+
+  turns:
+    - role: user
+      content: |
+        [
+          { "id": "abc1234", "category": "feature",   "summary": "Adds retry budget for outbound webhooks." },
+          { "id": "def5678", "category": "fix",       "summary": "Restores pagination cursor on the audit log endpoint." },
+          { "id": "ghi9012", "category": "breaking",  "summary": "Renames api.foo() to api.foo_v2(); old name removed." },
+          { "id": "jkl3456", "category": "fix",       "summary": "Stops leaking trace ids into customer-facing error messages." },
+          { "id": "mno7890", "category": "feature",   "summary": "Adds --dry-run flag to the migrate command." }
+        ]
+      assertions:
+        # Structural — each expected section header is present.
+        - type: content_matches
+          params:
+            pattern: "## Breaking Changes"
+            message: "Output must include a '## Breaking Changes' section."
+        - type: content_matches
+          params:
+            pattern: "## Features"
+            message: "Output must include a '## Features' section."
+        - type: content_matches
+          params:
+            pattern: "## Bug Fixes"
+            message: "Output must include a '## Bug Fixes' section."
+
+        # Coverage — every input id appears in the output.
+        - type: content_matches
+          params: { pattern: "`abc1234`", message: "Feature abc1234 must be referenced." }
+        - type: content_matches
+          params: { pattern: "`def5678`", message: "Fix def5678 must be referenced." }
+        - type: content_matches
+          params: { pattern: "`ghi9012`", message: "Breaking change ghi9012 must be referenced." }
+        - type: content_matches
+          params: { pattern: "`jkl3456`", message: "Fix jkl3456 must be referenced." }
+        - type: content_matches
+          params: { pattern: "`mno7890`", message: "Feature mno7890 must be referenced." }
+
+        # Tone — no emoji and no shouty punctuation.
+        - type: content_matches
+          params:
+            pattern: "^(?!.*[🎉🚀✨🔥]).*$"
+            flags: "s"
+            message: "Output must not contain release-flavored emoji."
+        - type: content_matches
+          params:
+            pattern: "^[^!]*$"
+            flags: "s"
+            message: "Output must not contain exclamation marks."
+
+        # Tone — LLM-judge backstop for drift the regex won't catch.
+        - type: assertion
+          message: "Output reads as professional engineering-changelog prose."
+          params:
+            eval_type: llm_judge_session
+            eval_params:
+              criteria: |
+                Does the output read as a professional, neutral engineering
+                changelog? Score low if it is casual, jokey, marketing-toned,
+                uses emoji, or addresses the reader directly with hype.
+              judge: tone-judge
+            min_score: 0.7
