@@ -21,7 +21,7 @@ jobs:
     name: PromptArena (mock — hermetic)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Run scenarios against mock provider
         uses: AltairaLabs/PromptKit/.github/actions/promptarena-action@actions/promptarena/v1
@@ -32,7 +32,7 @@ jobs:
 
       - name: Publish JUnit results
         if: always()
-        uses: dorny/test-reporter@v1
+        uses: dorny/test-reporter@v3
         with:
           name: PromptArena scenarios (mock)
           path: out/junit.xml
@@ -45,7 +45,7 @@ jobs:
 
       - name: Upload arena report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: arena-report
           path: out/
@@ -58,7 +58,7 @@ jobs:
     if: github.event_name == 'workflow_dispatch'
     needs: test
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Run scenarios against real providers
         uses: AltairaLabs/PromptKit/.github/actions/promptarena-action@actions/promptarena/v1
@@ -72,7 +72,7 @@ jobs:
 
       - name: Publish JUnit results
         if: always()
-        uses: dorny/test-reporter@v1
+        uses: dorny/test-reporter@v3
         with:
           name: PromptArena scenarios (real providers)
           path: out/junit.xml
@@ -85,7 +85,7 @@ jobs:
 
       - name: Upload arena report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: arena-report-real
           path: out/
@@ -96,7 +96,7 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: test
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Create output directory
         run: mkdir -p dist
@@ -108,7 +108,7 @@ jobs:
           output: dist/release-notes.pack.json
 
       - name: Upload pack artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-notes-pack
           path: dist/release-notes.pack.json
