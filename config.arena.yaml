@@ -74,10 +74,8 @@ spec:
     concurrency: 2
     output:
       dir: out
-      formats: ["json", "html", "junit"]
+      formats: ["json", "html", "junit", "markdown"]
       html:
         file: report.html
-      junit:
-        file: report.junit.xml
     fail_on:
       - provider_error
