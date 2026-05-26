@@ -1,0 +1,4 @@
+# Mock judge responses — returns a high score for any input.
+# In real CI you'd replace the mock judge with a real provider.
+
+defaultResponse: '{"passed": true, "score": 0.95, "reasoning": "Professional tone."}'

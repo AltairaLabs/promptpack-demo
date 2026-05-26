@@ -22,20 +22,26 @@ spec:
       file: prompts/categorize.yaml
     - id: compose
       file: prompts/compose.yaml
+    - id: judge-tone
+      file: prompts/judge-tone.yaml
 
   providers:
     - file: providers/claude-haiku.provider.yaml
+      group: default
     - file: providers/openai-mini.provider.yaml
+      group: default
     - file: providers/mock.provider.yaml
+      group: default
+    - file: providers/mock-judge.provider.yaml
       group: judge
 
   judges:
     - name: tone-judge
-      provider: mock           # swap to a real provider id for production drift checks
+      provider: mock-judge     # swap to a real provider id for production drift checks
       model: judge-model
 
   judge_defaults:
-    judge: tone-judge
+    prompt: judge-tone
 
   scenarios:
     - file: scenarios/happy-path.scenario.yaml

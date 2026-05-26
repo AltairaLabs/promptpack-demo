@@ -9,6 +9,7 @@ spec:
     as the canonical green run. If this one fails, something fundamental is
     broken (formatting, coverage, structure).
   task_type: "compose"
+  provider_group: default
 
   turns:
     - role: user
@@ -28,10 +29,16 @@ spec:
             message: "Output must include Breaking Changes, Features, and Bug Fixes sections in that order."
 
         # Coverage — every input id referenced.
-        - type: contains_all
-          params:
-            patterns: ["`abc1234`", "`def5678`", "`ghi9012`", "`jkl3456`", "`mno7890`"]
-            message: "All five change ids must appear in the output."
+        - type: content_matches
+          params: { pattern: "`abc1234`", message: "Feature abc1234 must be referenced." }
+        - type: content_matches
+          params: { pattern: "`def5678`", message: "Fix def5678 must be referenced." }
+        - type: content_matches
+          params: { pattern: "`ghi9012`", message: "Breaking change ghi9012 must be referenced." }
+        - type: content_matches
+          params: { pattern: "`jkl3456`", message: "Fix jkl3456 must be referenced." }
+        - type: content_matches
+          params: { pattern: "`mno7890`", message: "Feature mno7890 must be referenced." }
 
         # Each entry uses the bullet + backticked id + em-dash format.
         - type: content_matches

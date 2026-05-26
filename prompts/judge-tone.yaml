@@ -1,0 +1,23 @@
+apiVersion: promptkit.altairalabs.ai/v1alpha1
+kind: PromptConfig
+metadata:
+  name: judge-tone
+spec:
+  task_type: "judge"
+  version: "v1.0.0"
+  description: "LLM-as-judge for evaluating release-notes tone."
+
+  system_template: |
+    You are an evaluator. The user message contains release-notes output
+    produced by another model. Score how well it matches a professional,
+    neutral engineering changelog.
+
+    Score from 0.0 to 1.0 where:
+      1.0 — Clean engineering tone, plain prose, no emoji, no hype.
+      0.7 — Mostly professional, minor lapses.
+      0.4 — Casual phrasings, marketing voice, or addresses the reader directly.
+      0.0 — Jokes, emoji, exclamation marks, hype words ("amazing", "awesome").
+
+    Reply with only a single float between 0 and 1.
+
+  allowed_tools: []

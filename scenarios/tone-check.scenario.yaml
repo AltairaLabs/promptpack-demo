@@ -10,6 +10,7 @@ spec:
     scenario that catches "make it casual / sprinkle in emoji" regressions to
     the compose prompt.
   task_type: "compose"
+  provider_group: default
 
   turns:
     - role: user
@@ -48,12 +49,9 @@ spec:
         - type: content_matches
           params: { pattern: "`mno7890`", message: "Feature mno7890 must be referenced." }
 
-        # Tone — no emoji and no shouty punctuation.
-        - type: content_matches
-          params:
-            pattern: "^(?!.*[🎉🚀✨🔥]).*$"
-            flags: "s"
-            message: "Output must not contain release-flavored emoji."
+        # Tone — no shouty punctuation. (Emoji rejection is handled by the
+        # `banned_words` validator on prompts/compose.yaml — Go's regexp
+        # package is RE2 and doesn't support negative lookaheads.)
         - type: content_matches
           params:
             pattern: "^[^!]*$"
@@ -64,11 +62,12 @@ spec:
         - type: assertion
           message: "Output reads as professional engineering-changelog prose."
           params:
-            eval_type: llm_judge_session
+            eval_type: llm_judge
             eval_params:
               criteria: |
                 Does the output read as a professional, neutral engineering
                 changelog? Score low if it is casual, jokey, marketing-toned,
                 uses emoji, or addresses the reader directly with hype.
               judge: tone-judge
+              prompt: judge-tone
             min_score: 0.7
