@@ -46,7 +46,7 @@ Every PR runs `promptarena` twice: once against the mock provider (fast, hermeti
 
 The demo PR that makes the value visible:
 
-- **[#1 — Make release notes casual and fun](https://github.com/AltairaLabs/promptpack-demo/pull/1)** (CI red). One-line change to `prompts/compose.yaml` swaps the professional-tone instruction for "be casual and fun, sprinkle in emoji." The `tone-check` scenario fails on three independent assertions against the real model output: an exclamation-mark regex, a `banned_words` validator that rejects emoji glyphs, and an LLM-judge backstop scoring tone professionalism below `0.7`. PR cannot merge until reverted.
+- **[#1 — Make release notes casual and fun](https://github.com/AltairaLabs/promptpack-demo/pull/1)** (CI red). One-line change to `prompts/compose.yaml` swaps the professional-tone instruction for "be casual and fun, sprinkle in emoji." The `tone-check` scenario fails on two independent assertions against the real model output: an exclamation-mark regex on the response, and a `banned_words` validator that rejects emoji glyphs (🎉 🚀 ✨ 🔥). PR cannot merge until reverted.
 
 > Real-provider CI requires repo secrets `ANTHROPIC_API_KEY` and `OPENAI_API_KEY`. Without them, the real-provider job fails fast with credential errors. The mock job still passes — but it can't catch tone regressions, because mock output is hardcoded fixture text that doesn't depend on the prompt.
 

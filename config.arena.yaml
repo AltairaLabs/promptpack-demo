@@ -36,9 +36,14 @@ spec:
       group: judge
 
   judges:
+    # The judge is invoked for every scenario assertion, regardless of which
+    # candidate provider is running. Pointing it at a real provider would
+    # require API keys for mock CI too, defeating the hermetic-fixtures goal.
+    # Mock judge is fine for the demo — the tone-check scenario also has a
+    # regex + banned_words validator that fire deterministically on output.
     - name: tone-judge
-      provider: claude-haiku
-      model: claude-3-5-haiku-20241022
+      provider: mock-judge
+      model: judge-model
 
   judge_defaults:
     prompt: judge-tone
