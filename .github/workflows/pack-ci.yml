@@ -29,6 +29,7 @@ jobs:
           config-file: config.arena.yaml
           providers: mock
           output-dir: out
+          formats: json,junit,markdown
 
       - name: Publish JUnit results
         if: always()
@@ -40,25 +41,8 @@ jobs:
           fail-on-error: false
 
       - name: Append markdown report to job summary
-        if: always() && hashFiles('out/index.json') != ''
-        run: |
-          # The promptarena-action only emits json+junit (no `formats` input
-          # to override). Build a summary from out/index.json until upstream
-          # exposes a formats input — see PromptKit issue.
-          jq -r '
-            "## PromptArena Results",
-            "",
-            "| Metric | Value |",
-            "|--------|-------|",
-            "| Scenarios | \(.scenarios | join(", ")) |",
-            "| Providers | \(.providers | join(", ")) |",
-            "| Total runs | \(.total_runs) |",
-            "| Successful | \(.successful) |",
-            "| Errors | \(.errors) |",
-            "| Total tokens | \(.total_tokens) |",
-            "| Total cost | $\(.total_cost) |",
-            "| Duration | \(.total_duration) |"
-          ' out/index.json >> "$GITHUB_STEP_SUMMARY"
+        if: always() && hashFiles('out/results.md') != ''
+        run: cat out/results.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload arena report
         if: always()
@@ -83,6 +67,7 @@ jobs:
           config-file: config.arena.yaml
           providers: ${{ github.event.inputs.providers || 'claude-haiku,openai-mini' }}
           output-dir: out
+          formats: json,junit,markdown
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -97,25 +82,8 @@ jobs:
           fail-on-error: false
 
       - name: Append markdown report to job summary
-        if: always() && hashFiles('out/index.json') != ''
-        run: |
-          # The promptarena-action only emits json+junit (no `formats` input
-          # to override). Build a summary from out/index.json until upstream
-          # exposes a formats input — see PromptKit issue.
-          jq -r '
-            "## PromptArena Results",
-            "",
-            "| Metric | Value |",
-            "|--------|-------|",
-            "| Scenarios | \(.scenarios | join(", ")) |",
-            "| Providers | \(.providers | join(", ")) |",
-            "| Total runs | \(.total_runs) |",
-            "| Successful | \(.successful) |",
-            "| Errors | \(.errors) |",
-            "| Total tokens | \(.total_tokens) |",
-            "| Total cost | $\(.total_cost) |",
-            "| Duration | \(.total_duration) |"
-          ' out/index.json >> "$GITHUB_STEP_SUMMARY"
+        if: always() && hashFiles('out/results.md') != ''
+        run: cat out/results.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload arena report
         if: always()
