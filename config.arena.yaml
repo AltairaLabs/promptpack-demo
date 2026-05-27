@@ -37,8 +37,8 @@ spec:
 
   judges:
     - name: tone-judge
-      provider: mock-judge     # swap to a real provider id for production drift checks
-      model: judge-model
+      provider: claude-haiku
+      model: claude-3-5-haiku-20241022
 
   judge_defaults:
     prompt: judge-tone

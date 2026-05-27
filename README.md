@@ -42,12 +42,13 @@ packc compile -c config.arena.yaml -o dist/release-notes.pack.json
 
 ## What the CI proves
 
-Every PR runs `promptarena` against the mock provider — fast, deterministic, no tokens. Failures block the PR. On merge to `main`, `packc compile` produces a content-addressed `.pack.json`, and that artifact is attached to a GitHub Release tagged by version.
+Every PR runs `promptarena` twice: once against the mock provider (fast, hermetic fixtures, no tokens) and once against real providers (Claude + OpenAI) so the assertions exercise real model behaviour. Either failure blocks the PR. On merge to `main`, `packc compile` produces a content-addressed `.pack.json` artifact.
 
-Two demo PRs in this repo's history make the value visible:
+The demo PR that makes the value visible:
 
-- **#1 — Initial agent** (CI green). The baseline pack passes all scenarios.
-- **#2 — Make the tone casual** (CI red). One-line change to `prompts/compose.yaml` adds "be casual and fun, sprinkle in emoji." The `tone-check` scenario fails on three independent assertions: a regex for emoji characters, a banned-words validator on the prompt, and an LLM-judge backstop scoring tone professionalism. PR cannot merge until reverted.
+- **[demo/casual-tone](https://github.com/AltairaLabs/promptpack-demo/pulls?q=is%3Apr+head%3Ademo%2Fcasual-tone)** (CI red). One-line change to `prompts/compose.yaml` swaps the professional-tone instruction for "be casual and fun, sprinkle in emoji." The `tone-check` scenario fails on three independent assertions against the real model output: an exclamation-mark regex, a `banned_words` validator that rejects emoji glyphs, and an LLM-judge backstop scoring tone professionalism below `0.7`. PR cannot merge until reverted.
+
+> Real-provider CI requires repo secrets `ANTHROPIC_API_KEY` and `OPENAI_API_KEY`. Without them, the real-provider job fails fast with credential errors. The mock job still passes — but it can't catch tone regressions, because mock output is hardcoded fixture text that doesn't depend on the prompt.
 
 ## The pitch
 

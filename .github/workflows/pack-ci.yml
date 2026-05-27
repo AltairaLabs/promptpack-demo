@@ -54,9 +54,11 @@ jobs:
   test-real-providers:
     name: PromptArena (real providers — drift check)
     runs-on: ubuntu-latest
-    # Opt-in: run only when manually triggered. Requires repo secrets
-    # ANTHROPIC_API_KEY and OPENAI_API_KEY.
-    if: github.event_name == 'workflow_dispatch'
+    # Runs on every PR and on manual dispatch. Requires repo secrets
+    # ANTHROPIC_API_KEY and OPENAI_API_KEY — without them the job fails fast
+    # with credential errors (intentional: the regression catch only works
+    # against real models, not the hermetic mock fixtures).
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
     needs: test
     steps:
       - uses: actions/checkout@v6
