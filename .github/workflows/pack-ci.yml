@@ -64,6 +64,7 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Run scenarios against real providers
+        id: arena
         uses: AltairaLabs/PromptKit/.github/actions/promptarena-action@actions/promptarena/v1
         with:
           config-file: config.arena.yaml
@@ -90,6 +91,30 @@ jobs:
         if: always() && hashFiles('out/results.md') != ''
         run: cat out/results.md >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Build PR eval comment
+        if: always() && github.event_name == 'pull_request' && hashFiles('out/results.md') != ''
+        run: |
+          {
+            if [ "${{ steps.arena.outcome }}" = "success" ]; then
+              echo "## ✅ Eval gate passed"
+              echo ""
+              echo "PromptArena ran this prompt against real models — all scenarios passed."
+            else
+              echo "## ❌ Eval gate failed — merge blocked"
+              echo ""
+              echo "PromptArena ran this prompt against real models and the output failed the tone guardrails. A prompt change can't merge until it passes."
+            fi
+            echo ""
+            cat out/results.md
+          } > out/pr-comment.md
+
+      - name: Post eval result on PR
+        if: always() && github.event_name == 'pull_request' && hashFiles('out/pr-comment.md') != ''
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: promptarena-eval
+          path: out/pr-comment.md
+
       - name: Upload arena report
         if: always()
         uses: actions/upload-artifact@v7
@@ -113,6 +138,21 @@ jobs:
         with:
           config-file: config.arena.yaml
           output: dist/release-notes.pack.json
+
+      - name: Publish content-addressed release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          full=$(sha256sum dist/release-notes.pack.json | cut -d' ' -f1)
+          tag="pack-${full:0:12}"
+          if gh release view "$tag" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release $tag already exists (identical pack content) — skipping."
+          else
+            gh release create "$tag" dist/release-notes.pack.json \
+              -R "$GITHUB_REPOSITORY" \
+              --title "release-notes $tag" \
+              --notes "Content-addressed PromptPack build, compiled by packc on merge to main. sha256: \`$full\`"
+          fi
 
       - name: Upload pack artifact
         uses: actions/upload-artifact@v7
