@@ -1,14 +1,14 @@
 # Release-notes agent — declarative behaviour spec.
 #
-# The agent reads a list of raw commits and produces a structured markdown
-# changelog, in three workflow stages:
+# The agent is expressed as three prompts, no source code:
 #
 #   extract:    raw commit              → { id, summary, suspected_category }
 #   categorize: structured change       → { id, summary, category }
 #   compose:    categorized list        → markdown release notes
 #
-# All three steps run against the same provider in one pipeline turn. The
-# workspace is exhaustively testable — see scenarios/*.scenario.yaml.
+# The eval scenarios target the `compose` stage directly: they feed a
+# categorized changelog and assert the rendered release notes are complete,
+# well-formed, and professional in tone. See scenarios/*.scenario.yaml.
 #
 apiVersion: promptkit.altairalabs.ai/v1alpha1
 kind: Arena
@@ -50,26 +50,6 @@ spec:
   scenarios:
     - file: scenarios/happy-path.scenario.yaml
     - file: scenarios/tone-check.scenario.yaml
-
-  workflow:
-    version: 1
-    entry: extract
-    states:
-      extract:
-        prompt_task: extract
-        description: "Parse raw commits into structured change records."
-        on_event:
-          Extracted: categorize
-      categorize:
-        prompt_task: categorize
-        control: agent
-        description: "Confirm or correct the suspected category for each change."
-        on_event:
-          Categorized: compose
-      compose:
-        prompt_task: compose
-        description: "Compose markdown release notes from categorized changes."
-        terminal: true
 
   defaults:
     temperature: 0.3

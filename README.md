@@ -8,7 +8,7 @@ This repo is a working demonstration of the [PromptPack](https://promptpack.org)
 
 ```
 .
-├── config.arena.yaml          # workspace: prompts + providers + scenarios + workflow
+├── config.arena.yaml          # workspace: prompts + providers + scenarios + judges
 ├── prompts/                   # the agent's behaviour
 │   ├── extract.yaml           # commit → structured change
 │   ├── categorize.yaml        # change → feature | fix | breaking
