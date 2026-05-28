@@ -36,14 +36,13 @@ spec:
       group: judge
 
   judges:
-    # The judge is invoked for every scenario assertion, regardless of which
-    # candidate provider is running. Pointing it at a real provider would
-    # require API keys for mock CI too, defeating the hermetic-fixtures goal.
-    # Mock judge is fine for the demo — the tone-check scenario also has a
-    # regex + banned_words validator that fire deterministically on output.
+    # Default to the mock judge so the hermetic mock CI tier needs no API keys
+    # and stays deterministic. The real-provider CI tier rebinds this to real
+    # Claude at invocation time via `override-providers: mock-judge=claude-haiku`
+    # (promptarena --override-provider), so the LLM-judge tone check runs for
+    # real there without a second judge definition.
     - name: tone-judge
       provider: mock-judge
-      model: judge-model
 
   judge_defaults:
     prompt: judge-tone

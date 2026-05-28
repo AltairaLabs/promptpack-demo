@@ -68,6 +68,9 @@ jobs:
         with:
           config-file: config.arena.yaml
           providers: ${{ github.event.inputs.providers || 'claude-haiku,openai-mini' }}
+          # Rebind the mock judge to real Claude for this tier so the LLM-judge
+          # tone check actually evaluates output. The mock tier leaves it alone.
+          override-providers: mock-judge=claude-haiku
           output-dir: out
           formats: json,junit,markdown
         env:
