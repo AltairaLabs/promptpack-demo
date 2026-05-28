@@ -1,14 +1,13 @@
 # Release-notes agent — declarative behaviour spec.
 #
-# The agent is expressed as three prompts, no source code:
+# The agent is a single prompt, no source code: it reads a raw git log and
+# produces categorized markdown release notes (Breaking / Features / Bug
+# Fixes) in a professional engineering tone.
 #
-#   extract:    raw commit              → { id, summary, suspected_category }
-#   categorize: structured change       → { id, summary, category }
-#   compose:    categorized list        → markdown release notes
-#
-# The eval scenarios target the `compose` stage directly: they feed a
-# categorized changelog and assert the rendered release notes are complete,
-# well-formed, and professional in tone. See scenarios/*.scenario.yaml.
+# The eval scenarios feed a raw commit log and assert the rendered notes are
+# complete, well-formed, and professional — a casual/emoji tone regression
+# trips the banned_words validator and the LLM tone judge. See
+# scenarios/*.scenario.yaml.
 #
 apiVersion: promptkit.altairalabs.ai/v1alpha1
 kind: Arena
@@ -16,10 +15,6 @@ metadata:
   name: release-notes-arena
 spec:
   prompt_configs:
-    - id: extract
-      file: prompts/extract.yaml
-    - id: categorize
-      file: prompts/categorize.yaml
     - id: compose
       file: prompts/compose.yaml
     - id: judge-tone

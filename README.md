@@ -10,9 +10,8 @@ This repo is a working demonstration of the [PromptPack](https://promptpack.org)
 .
 ├── config.arena.yaml          # workspace: prompts + providers + scenarios + judges
 ├── prompts/                   # the agent's behaviour
-│   ├── extract.yaml           # commit → structured change
-│   ├── categorize.yaml        # change → feature | fix | breaking
-│   └── compose.yaml           # categorized → markdown release notes
+│   ├── compose.yaml           # raw git log → categorized markdown release notes
+│   └── judge-tone.yaml        # LLM-judge that scores release-notes tone
 ├── providers/                 # which models, what defaults
 ├── scenarios/                 # tests — input turns + assertions
 ├── mock-responses.yaml        # hermetic CI fixtures (no API tokens needed)

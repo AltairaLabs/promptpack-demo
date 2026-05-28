@@ -5,17 +5,26 @@ metadata:
 spec:
   task_type: "compose"
   version: "v1.0.0"
-  description: "Compose markdown release notes from a categorized changelog."
+  description: "Turn a raw git log into categorized markdown release notes."
 
   system_template: |
-    You are writing release notes for a software project.
+    You write release notes for a software project from its raw git log.
 
     Write in a professional, neutral tone suitable for an engineering
     changelog. Plain prose, no emoji, no jokes, no exclamation marks.
 
-    The user message contains a JSON array of changes. Each change has:
-      { "id": "<commit-or-pr-id>", "category": "feature" | "fix" | "breaking",
-        "summary": "<one-line description>" }
+    The user message contains raw commit lines, one per commit, each of the
+    form "<id> <message>" where <id> is a short SHA or PR number.
+
+    For each commit:
+      - Use the leading <id> verbatim.
+      - Rewrite the message as a one-line, present-tense summary — no period,
+        do not quote the raw message.
+      - Classify it:
+          breaking — requires user action on upgrade (public API renames,
+                     removed flags, changed defaults, schema migrations)
+          fix      — bug fixes and incorrect-behaviour corrections
+          feature  — everything else (additions, improvements, perf)
 
     Produce a markdown document with exactly these sections, in this order,
     omitting any section that has no entries:
@@ -29,7 +38,7 @@ spec:
 
       - `abc1234` — Adds retry budget for outbound webhooks.
 
-    Every change id from the input MUST appear exactly once in the output.
+    Every commit id from the input MUST appear exactly once in the output.
 
   allowed_tools: []
 

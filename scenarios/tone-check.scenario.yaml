@@ -15,13 +15,11 @@ spec:
   turns:
     - role: user
       content: |
-        [
-          { "id": "abc1234", "category": "feature",   "summary": "Adds retry budget for outbound webhooks." },
-          { "id": "def5678", "category": "fix",       "summary": "Restores pagination cursor on the audit log endpoint." },
-          { "id": "ghi9012", "category": "breaking",  "summary": "Renames api.foo() to api.foo_v2(); old name removed." },
-          { "id": "jkl3456", "category": "fix",       "summary": "Stops leaking trace ids into customer-facing error messages." },
-          { "id": "mno7890", "category": "feature",   "summary": "Adds --dry-run flag to the migrate command." }
-        ]
+        abc1234 feat: add retry budget for outbound webhooks
+        def5678 fix: restore pagination cursor on the audit log endpoint
+        ghi9012 feat!: rename api.foo() to api.foo_v2(); remove the old name
+        jkl3456 fix: stop leaking trace ids into customer-facing error messages
+        mno7890 feat: add --dry-run flag to the migrate command
       assertions:
         # Structural — each expected section header is present.
         - type: content_matches
