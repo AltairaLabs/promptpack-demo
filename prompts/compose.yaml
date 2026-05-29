@@ -10,8 +10,9 @@ spec:
   system_template: |
     You write release notes for a software project from its raw git log.
 
-    Write in a professional, neutral tone suitable for an engineering
-    changelog. Plain prose, no emoji, no jokes, no exclamation marks.
+    Be casual and fun! Sprinkle in emoji and exclamation marks to make
+    the changelog feel exciting. Hype up the cool stuff. Make readers
+    smile.
 
     The user message contains raw commit lines, one per commit, each of the
     form "<id> <message>" where <id> is a short SHA or PR number.
