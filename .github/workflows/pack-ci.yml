@@ -9,7 +9,7 @@ on:
       providers:
         description: "Comma-separated providers to run against (e.g., claude-haiku,openai-mini)"
         required: false
-        default: "mock"
+        default: "claude-haiku,openai-mini"
 
 permissions:
   contents: write    # required for release-on-main step
@@ -17,49 +17,15 @@ permissions:
   pull-requests: write
 
 jobs:
-  test:
-    name: PromptArena (mock — hermetic)
+  eval:
+    name: PromptArena eval (real providers)
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-
-      - name: Run scenarios against mock provider
-        uses: AltairaLabs/PromptKit/.github/actions/promptarena-action@actions/promptarena/v1
-        with:
-          config-file: config.arena.yaml
-          providers: mock
-          output-dir: out
-          formats: json,junit,markdown
-
-      - name: Publish JUnit results
-        if: always()
-        uses: dorny/test-reporter@v3
-        with:
-          name: PromptArena scenarios (mock)
-          path: out/junit.xml
-          reporter: java-junit
-          fail-on-error: false
-
-      - name: Append markdown report to job summary
-        if: always() && hashFiles('out/results.md') != ''
-        run: cat out/results.md >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Upload arena report
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: arena-report
-          path: out/
-
-  test-real-providers:
-    name: PromptArena (real providers — drift check)
-    runs-on: ubuntu-latest
-    # Runs on every PR and on manual dispatch. Requires repo secrets
-    # ANTHROPIC_API_KEY and OPENAI_API_KEY — without them the job fails fast
-    # with credential errors (intentional: the regression catch only works
-    # against real models, not the hermetic mock fixtures).
+    # The eval gate: runs on every PR and on manual dispatch, against real
+    # provider models. Requires repo secrets ANTHROPIC_API_KEY and
+    # OPENAI_API_KEY — without them the job fails fast with credential errors.
+    # The mock provider is the tokenless LOCAL on-ramp (see README), not a CI
+    # tier — so the PR's red/green signal stays unambiguous.
     if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
-    needs: test
     steps:
       - uses: actions/checkout@v6
 
@@ -69,8 +35,8 @@ jobs:
         with:
           config-file: config.arena.yaml
           providers: ${{ github.event.inputs.providers || 'claude-haiku,openai-mini' }}
-          # Rebind the mock judge to real Claude for this tier so the LLM-judge
-          # tone check actually evaluates output. The mock tier leaves it alone.
+          # Rebind the mock judge to real Claude so the LLM-judge tone check
+          # evaluates against a real model (the mock judge always passes).
           override-providers: mock-judge=claude-haiku
           output-dir: out
           formats: json,junit,markdown
@@ -126,7 +92,6 @@ jobs:
     name: Compile and release pack artifact
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: test
     steps:
       - uses: actions/checkout@v6
 

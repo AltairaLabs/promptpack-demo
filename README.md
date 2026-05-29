@@ -14,7 +14,7 @@ This repo is a working demonstration of the [PromptPack](https://promptpack.org)
 │   └── judge-tone.yaml        # LLM-judge that scores release-notes tone
 ├── providers/                 # which models, what defaults
 ├── scenarios/                 # tests — input turns + assertions
-├── mock-responses.yaml        # hermetic CI fixtures (no API tokens needed)
+├── mock-responses.yaml        # fixtures for tokenless local `--providers mock` runs
 └── .github/workflows/pack-ci.yml
 ```
 
@@ -41,13 +41,13 @@ packc compile -c config.arena.yaml -o dist/release-notes.pack.json
 
 ## What the CI proves
 
-Every PR runs `promptarena` twice: once against the mock provider (fast, hermetic fixtures, no tokens) and once against real providers (Claude + OpenAI) so the assertions exercise real model behaviour. Either failure blocks the PR, and the eval result is posted back as a comment on the PR. On merge to `main`, `packc compile` builds the pack and publishes it as a **content-addressed GitHub Release** — tagged by the pack's `sha256` — so every shipped version is immutable and traceable.
+Every PR runs `promptarena` against real provider models (Claude + OpenAI), so the eval exercises real behaviour, and the result is posted back as a comment on the PR. A failed eval marks the PR red. On merge to `main`, `packc compile` builds the pack and publishes it as a **content-addressed GitHub Release** — tagged by the pack's `sha256` — so every shipped version is immutable and traceable. (A mock provider is available for fast, tokenless *local* runs — see above — but it isn't a CI gate, so the PR's pass/fail stays unambiguous.)
 
 The demo PR that makes the value visible:
 
 - **[#1 — Make release notes casual and fun](https://github.com/AltairaLabs/promptpack-demo/pull/1)** (CI red). One-line change to `prompts/compose.yaml` swaps the professional-tone instruction for "be casual and fun, sprinkle in emoji." The `tone-check` scenario carries three independent tone guardrails on the real model output — a `banned_words` validator rejecting emoji glyphs (🎉 🚀 ✨ 🔥), an LLM-judge scoring tone professionalism (must be ≥ `0.7`), and an exclamation-mark regex — and the casual prompt trips them. In a real run the model titled the notes `# Release Notes 🎉`: the `banned_words` validator flagged the emoji and the judge scored it `0.15`, noting the emoji is "casual and unprofessional for an engineering changelog." PR cannot merge until reverted.
 
-> Real-provider CI requires repo secrets `ANTHROPIC_API_KEY` and `OPENAI_API_KEY`. Without them, the real-provider job fails fast with credential errors. The mock job still passes — but it can't catch tone regressions, because mock output is hardcoded fixture text that doesn't depend on the prompt. The LLM judge defaults to a mock; the real-provider tier rebinds it to Claude via `override-providers: mock-judge=claude-haiku`.
+> The eval requires repo secrets `ANTHROPIC_API_KEY` and `OPENAI_API_KEY`; without them the job fails fast with credential errors. A mock provider exists for local runs, but it can't catch tone regressions — its output is fixed fixture text that ignores the prompt — which is exactly why the CI gate uses real models. The LLM judge defaults to the mock locally; the CI eval rebinds it to Claude via `override-providers: mock-judge=claude-haiku`.
 
 ## The pitch
 
